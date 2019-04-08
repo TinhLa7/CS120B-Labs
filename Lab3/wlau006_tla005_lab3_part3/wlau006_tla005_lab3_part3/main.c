@@ -41,7 +41,7 @@ int main(void)
 		}else if(tmpA >= 13 && tmpA <= 15){
 			PORTC = (PORTC & 0x00) | 0x3F;
 		}
-		if(tmpB & 0x30){
+		if(tmpB == 0x30){
 			PORTC = PORTC | 0x80;
 		}else{
 			PORTC = PORTC & 0x7F;
