@@ -1,4 +1,3 @@
-
 /*	Partner 1 Name & E-mail: Wyland Lau, wlau006@ucr.edu
  *	Partner 2 Name & E-mail: Tinh La, tla005@ucr.edu
  *	Lab Section: 025
