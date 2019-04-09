@@ -25,7 +25,7 @@ int main(void)
 	unsigned char tmpA = 0x00;
 	unsigned char tmpB = 0x00;
 	unsigned char tmpC = 0x00;
-    unsigned char tmp = 0x00; // temporary variable to hold bit
+    //unsigned char tmp = 0x00; // temporary variable to hold bit
     
 	while (1) 
     {
