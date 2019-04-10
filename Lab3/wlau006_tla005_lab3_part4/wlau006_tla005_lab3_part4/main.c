@@ -29,6 +29,9 @@ int main(void)
     
 	while (1) 
     {
+		tmpA = 0x00;
+		tmpB = 0x00;
+		tmpC = 0x00;
 		tmpA = PINA & 0xFF; // Read input off of PINA
 		// PA7 -> PB3
 		tmpB = SetBit(tmpB, 3, GetBit(tmpA,7));
