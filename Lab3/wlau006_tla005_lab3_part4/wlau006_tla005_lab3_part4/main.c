@@ -33,8 +33,8 @@ int main(void)
 		tmpB = 0x00;
 		tmpC = 0x00;
 		tmpA = PINA & 0xFF; // Read input off of PINA
-		tmpB = tmpA & 0x0F;
-		tmpC = tmpA & 0xF0;
+		tmpB = tmpA & 0xF0;
+		tmpC = tmpA & 0x0F;
 		PORTB = tmpB;
 		PORTC = tmpC;
 		
