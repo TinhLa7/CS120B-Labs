@@ -7,7 +7,7 @@
  */
 
 #include <avr/io.h>
-
+#define button GetBit(tmpA, 0)
 //global variables
 unsigned char tmpA;
 unsigned char tmpB;
@@ -21,8 +21,6 @@ unsigned char SetBit(unsigned char x, unsigned char k, unsigned char b){
 unsigned char GetBit(unsigned char x, unsigned char k) {
 	return ((x & (0x01 << k)) != 0);
 }
-
-#define button GetBit(tmpA, 0);
 
 void state_func() {
 	switch (state){ // Transitions
@@ -96,10 +94,10 @@ int main(void)
 	DDRB = 0xFF; PORTB = 0x00; // Configure port B's 8 pins as outputs, initialize to 0s
     tmpA = 0x00;
 	tmpB = 0x00;
+	state = Start;
     while (1) 
     {
 		tmpA = PINA & 0x03;
-		state = Start;
 		state_func();
     }
 }
