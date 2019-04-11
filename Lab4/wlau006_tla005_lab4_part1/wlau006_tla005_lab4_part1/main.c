@@ -1,87 +1,104 @@
 /*	Partner 1 Name & E-mail: Wyland Lau, wlau006@ucr.edu
  *	Partner 2 Name & E-mail: Tinh La, tla005@ucr.edu
  *	Lab Section: 025
- *	Assignment: Lab 4  Exercise 1
+ *	Assignment: Lab 4  Exercise 1 
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
  */
 
 #include <avr/io.h>
+#define button GetBit(tmpA, 0)
+//global variables
+unsigned char tmpA;
+unsigned char tmpB;
 
-enum LED_States { LED_start, LED_s0, LED_s1, LED_s2, LED_s3 } LED_State;
+enum States {Start, Init, First, FirstPress, Second, SecondPress} state;
 
-void TickFct_LED()
-{
-	unsigned char tmpA = PINA & 0x01;
-	switch(LED_State) {   // Transitions
-		case LED_start:  // Initial transitiona
-		LED_State = LED_s0;
-		break;
-
-		case LED_s0:
-		if (tmpA == 1) {
-			LED_State = LED_s1;
-		}else{
-			LED_State = LED_s0;
-		}
-		break;
-
-		case LED_s1:
-		if (tmpA == 0) {
-			LED_State = LED_s2;
-		}else{
-			LED_State = LED_s1;
-		}
-		break;
-		
-		case LED_s2:
-		if (tmpA == 1) {
-			LED_State = LED_s3;
-			}else{
-			LED_State = LED_s2;
-		}
-		break;
-
-		case LED_s3:
-		if (tmpA == 0) {
-			LED_State = LED_s0;
-			}else{
-			LED_State = LED_s3;
-		}
-		break;
-		default:
-		LED_State = LED_start;
-		break;
-	} // Transitions
-
-	switch(LED_State) {   // State actions
-		case LED_s0:
-		PORTB = (PORTB & 0x00) | 0x01;
-		break;
-
-		case LED_s1:
-		break;
-		
-		case LED_s2:
-		PORTB = (PORTB & 0x00) | 0x02;
-		break;
-		
-		case LED_s3:
-		break;
-		
-		default:
-		break;
-	} // State actions
+// Bit-access function
+unsigned char SetBit(unsigned char x, unsigned char k, unsigned char b){
+	return (b ? x | (0x01 << k) : x & ~(0x01 << k));
+}
+unsigned char GetBit(unsigned char x, unsigned char k) {
+	return ((x & (0x01 << k)) != 0);
 }
 
-int main() {
+void state_func() {
+	switch (state){ // Transitions
+		case Start:
+			state = Init;	
+			break;
+		case Init:
+			state = First;
+			break;
+		case First:
+			if(button){
+				state = FirstPress;
+			}else{
+				state = First;
+			}
+			break;
+		case FirstPress:
+			if(!button){
+				state = Second;
+			}else{
+				state = FirstPress;
+			}
+			break;
+		case Second:
+			if(button){
+				state = SecondPress;
+				}else{
+					state = Second;
+			}
+			break;
+		case SecondPress:
+			if(!button){
+				state = First;
+				}else{
+					state = SecondPress;
+				}
+				break;
+		default:
+			state = Init;
+			break;
+	} 
 	
-	DDRA = 0x00; PORTA = 0xFF;// Configure port A's 8 pins as inputs, initialize to 1s
-	DDRB = 0xFF; PORTB = 0x00; // Configure port B's 8 pins as outputs, initialize to 0s
-
-	LED_State = LED_start; // Indicates initial call
-
-	while(1) {
-		TickFct_LED();
+	switch (state) { // Actions
+		case Start:
+		break;
+		case Init:
+			tmpB = SetBit(tmpB, 0, 1);
+			PORTB = tmpB;
+		break;
+		case First:
+		break;
+		case FirstPress:
+			tmpB = SetBit(tmpB, 0, 0);
+			tmpB = SetBit(tmpB, 1, 1);
+			PORTB = tmpB;
+		break;
+		case Second:
+		break;
+		case SecondPress:
+			tmpB = SetBit(tmpB, 1, 0);
+			tmpB = SetBit(tmpB, 0, 1);
+			PORTB = tmpB;
+		break;
+		default:
+		break;
 	}
 }
+int main(void)
+{
+	DDRA = 0x00; PORTA = 0xFF;// Configure port A's 8 pins as inputs, initialize to 1s
+	DDRB = 0xFF; PORTB = 0x00; // Configure port B's 8 pins as outputs, initialize to 0s
+    tmpA = 0x00;
+	tmpB = 0x00;
+	state = Start;
+    while (1) 
+    {
+		tmpA = PINA & 0x03;
+		state_func();
+    }
+}
+
