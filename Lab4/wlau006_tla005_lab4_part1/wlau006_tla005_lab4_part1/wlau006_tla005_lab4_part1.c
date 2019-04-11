@@ -67,22 +67,24 @@ void state_func() {
 	
 	switch (state) { // Actions
 		case Start:
-		
 		break;
 		case Init:
-		
+			tmpB = SetBit(tmpB, 0, 1);
+			PORTB = tmpB;
 		break;
 		case First:
-		
 		break;
 		case FirstPress:
-		
+			tmpB = SetBit(tmpB, 0, 0);
+			tmpB = SetBit(tmpB, 1, 1);
+			PORTB = tmpB;
 		break;
 		case Second:
-		
 		break;
 		case SecondPress:
-		
+			tmpB = SetBit(tmpB, 1, 0);
+			tmpB = SetBit(tmpB, 0, 1);
+			PORTB = tmpB;
 		break;
 		default:
 		break;
@@ -90,9 +92,15 @@ void state_func() {
 }
 int main(void)
 {
-    /* Replace with your application code */
+	DDRA = 0x00; PORTA = 0xFF;// Configure port A's 8 pins as inputs, initialize to 1s
+	DDRB = 0xFF; PORTB = 0x00; // Configure port B's 8 pins as outputs, initialize to 0s
+    tmpA = 0x00;
+	tmpB = 0x00;
     while (1) 
     {
+		tmpA = PINA & 0x03;
+		state = Start;
+		state_func();
     }
 }
 
