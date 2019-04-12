@@ -7,6 +7,8 @@
  */
 // Bit-access function
 #include <avr/io.h>
+unsigned char count = 0;
+
 unsigned char SetBit(unsigned char x, unsigned char k, unsigned char b){
 	return (b ? x | (0x01 << k) : x & ~(0x01 << k));
 }
@@ -22,8 +24,26 @@ void TickFct_Lock()
 		case Lock_wait:  // Initial transition
 		if(GetBit(tmpA,7) == 1 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0){
 			Lock_State = Lock_Lock;
-		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 1 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0){
+		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 1 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0 && count == 0){ // Correct
 			Lock_State = Lock_s0;
+		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 1 && count == 1){ // Correct
+			Lock_State = Lock_s0;
+		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 1 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0 && count == 1){ // Incorrect 
+			count = 0;
+		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 1 && GetBit(tmpA,0) == 0 && count == 1){ // Incorrect
+			count = 0;
+		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 1 && GetBit(tmpA,0) == 0 && count == 2){ // Correct
+			Lock_State = Lock_s0;
+		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 1 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0 && count == 2){ // Incorrect
+			count = 0;
+		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 1 && count == 2){ // Incorrect
+			count = 0;
+		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 1 && count == 3){ // Correct
+			Lock_State = Lock_s0;
+		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 1 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0 && count == 3){ // Incorrect
+			count = 0;
+		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 1 && GetBit(tmpA,0) == 0 && count == 3){ // Incorrect
+			count = 0;
 		}else{
 			Lock_State = Lock_wait;
 		}
@@ -32,18 +52,22 @@ void TickFct_Lock()
 		case Lock_s0:
 		if(GetBit(tmpA,7) == 1 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0){
 			Lock_State = Lock_Lock;	
-		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0){
+		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0 && count == 3){
 			Lock_State = Lock_s1;
+		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0){
+			++count;
+			Lock_State = Lock_wait;
 		}
 		break;
 		
 		case Lock_s1:
 		if(GetBit(tmpA,7) == 1 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0){
 			Lock_State = Lock_Lock;
-		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 1 && GetBit(tmpA,0) == 0 && GetBit(tmpB,0) == 1){ // Lock Door if code is entered and door is unlocked
+		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0 && GetBit(tmpB,0) == 1 && count == 3){ // Lock Door if code is entered and door is unlocked
 			Lock_State = Lock_Lock;
-		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 1 && GetBit(tmpA,0) == 0){
+		}else if(count == 3){
 			Lock_State = Lock_Unlock;
+			count = 0;
 		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 1){
 			Lock_State = Lock_wait;
 		}else if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 1 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0){
@@ -56,13 +80,20 @@ void TickFct_Lock()
 		case Lock_Lock:
 		if(GetBit(tmpA,7) == 0 && GetBit(tmpA,2) == 0 && GetBit(tmpA,1) == 0 && GetBit(tmpA,0) == 0){
 			Lock_State = Lock_wait;
+			count = 0;
 		}else{
 		Lock_State = Lock_Lock;
+		count = 0;
 		}
 		break;
 		
 		case Lock_Unlock:
-		Lock_State = Lock_wait;
+		if(GetBit(tmpB, 0) == 1 && count == 3){
+			Lock_State = Lock_Lock;
+			count = 0;
+		}else{
+			Lock_State = Lock_wait;
+		}
 		break;
 		
 		default:
