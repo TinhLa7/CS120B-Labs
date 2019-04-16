@@ -126,7 +126,7 @@ void TickFct_INCDEC()
 
 int main() {
 	
-	DDRA = 0x00; PORTA = 0xFF; // Configure port A's 8 pins as inputs, initialize to 1s
+	DDRA = 0x00; PORTA = 0xFF;// Configure port A's 8 pins as inputs, initialize to 1s
 	DDRB = 0xFF; PORTB = 0x00; // Configure port B's 8 pins as outputs, initialize to 0s
 	INCDEC_State = INCDEC_wait; // Indicates initial call
 	PORTB = 0x00;
