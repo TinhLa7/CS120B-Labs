@@ -8,7 +8,7 @@
 
 #include <avr/io.h>
 
-enum INCDEC_States {INCDEC_wait, INCDEC_reset, INC_s0, INC_s1, DEC_s0, DEC_s1} INCDEC_State;
+enum INCDEC_States {INCDEC_wait, INCDEC_reset0, INCDEC_reset1, INC_s0, INC_s1, DEC_s0, DEC_s1} INCDEC_State;
 void TickFct_INCDEC()
 {	
 	unsigned char tmpB = PORTB & 0xFF;
@@ -22,13 +22,13 @@ void TickFct_INCDEC()
 			}else if(tmpA == 2){
 				INCDEC_State = DEC_s0;
 			}else if(tmpA == 3){
-				INCDEC_State = INCDEC_reset;
+				INCDEC_State = INCDEC_reset0;
 			}
 		break;
 
 		case INC_s0:
 		if(tmpA == 3){
-			INCDEC_State = INCDEC_reset;
+			INCDEC_State = INCDEC_reset0;
 		}else if(tmpA == 2){
 			INCDEC_State = DEC_s0;
 		}else if(tmpA == 0){
@@ -46,7 +46,7 @@ void TickFct_INCDEC()
 				INCDEC_State = INCDEC_wait;
 			}
 		}else if(tmpA == 3){
-			INCDEC_State = INCDEC_reset;
+			INCDEC_State = INCDEC_reset0;
 		}else{
 			INCDEC_State = INC_s1;
 		}
@@ -54,7 +54,7 @@ void TickFct_INCDEC()
 		
 		case DEC_s0:
 		if(tmpA == 3){
-			INCDEC_State = INCDEC_reset;
+			INCDEC_State = INCDEC_reset0;
 		}else if (tmpA == 1){
 			INCDEC_State = INC_s0;
 		}else if (tmpA == 0){
@@ -72,20 +72,32 @@ void TickFct_INCDEC()
 				INCDEC_State = INCDEC_wait;
 			}
 		}else if(tmpA == 3){
-			INCDEC_State = INCDEC_reset;
+			INCDEC_State = INCDEC_reset0;
 		}else{
 			INCDEC_State = DEC_s1;
 		}
 		
 		break;
 		
-		case INCDEC_reset:
+		case INCDEC_reset0:
 		if(tmpA == 0){
 			INCDEC_State = INCDEC_wait;
 		}else{
-			INCDEC_State = INCDEC_reset;
+			INCDEC_State = INCDEC_reset1;
 		}
 		break;
+		
+		case INCDEC_reset1:
+		if(tmpA == 0){
+			INCDEC_State = INCDEC_wait;
+		}else if (tmpA == 1){
+			INCDEC_State = INC_s0;
+		}else if (tmpA == 2){
+			INCDEC_State = DEC_s0;
+		}else{
+			INCDEC_State = INCDEC_reset1;
+		}
+		break;		
 		
 		default:
 		INCDEC_State = INCDEC_wait;
@@ -111,8 +123,11 @@ void TickFct_INCDEC()
 		case DEC_s1:
 		break;
 		
-		case INCDEC_reset:
+		case INCDEC_reset0:
 			tmpB = 0;
+		break;
+		
+		case INCDEC_reset1:
 		break;
 		
 		case INCDEC_wait:
@@ -122,12 +137,14 @@ void TickFct_INCDEC()
 		break;
 	} // State actions
 	PORTB = tmpB;
+	PORTC = INCDEC_State;
 }
 
 int main() {
 	
 	DDRA = 0x00; PORTA = 0xFF;// Configure port A's 8 pins as inputs, initialize to 1s
 	DDRB = 0xFF; PORTB = 0x00; // Configure port B's 8 pins as outputs, initialize to 0s
+	DDRC = 0xFF; PORTC = 0x00;
 	INCDEC_State = INCDEC_wait; // Indicates initial call
 	PORTB = 0x00;
 	while(1) {
