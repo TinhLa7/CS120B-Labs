@@ -233,6 +233,7 @@ int main(void)
 	DDRB = 0xFF; PORTB = 0x00;
 	tmpA = 0;
 	tmpB = 0;
+	state = Start;
     while (1) 
     {
 		state_func();
