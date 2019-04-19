@@ -22,7 +22,7 @@ int main(void)
 	while(1)
 	{
 		// 1) Read input
-		tmpA = PINA & 0xFF;
+		tmpA = PINA & 0x0F;
 		//2) Perform computation
 		if(tmpA == 0){
 			PORTC = (PORTC & 0x00) | 0x40;

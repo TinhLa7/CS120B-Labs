@@ -11,7 +11,7 @@
 enum INCDEC_States {INCDEC_wait, INCDEC_reset0, INCDEC_reset1, INC_s0, INC_s1, DEC_s0, DEC_s1} INCDEC_State;
 void TickFct_INCDEC()
 {	
-	unsigned char tmpB = PORTB & 0xFF;
+	unsigned char tmpB = PORTB & 0x0F;
 	unsigned char tmpA = PINA & 0x03;
 	switch(INCDEC_State) {   // Transitions
 		case INCDEC_wait:  // Initial transition
