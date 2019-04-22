@@ -23,7 +23,7 @@ unsigned char GetBit(unsigned char x, unsigned char k) {
 }
 
 void state_func() {
-	tmpA = PINA & 0xFF;
+	tmpA = PINA & 0x01;
 	switch(state){// transitions
 		case Start:
 			if(!button){
