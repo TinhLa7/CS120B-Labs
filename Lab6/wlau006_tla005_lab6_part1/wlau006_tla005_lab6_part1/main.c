@@ -13,6 +13,7 @@ volatile unsigned char TimerFlag = 0;
 
 unsigned long _avr_timer_M = 1;
 unsigned long _avr_timer_cntcurr = 0;
+unsigned char tmpB = 0x00;
 
 void TimerOn(){
 	TCCR1B = 0x0B;
@@ -46,16 +47,50 @@ void TimerSet(unsigned long M) {
 	_avr_timer_cntcurr = _avr_timer_M;
 }
 
+enum States{/*Start,*/Init, LED1, LED2, LED3} state;
+
+void synchSM(){
+	switch(state){ // State transitions
+		case Init: state = LED1; break;
+		case LED1: state = LED2; break;
+		case LED2: state = LED3; break;
+		case LED3: state = LED1; break;
+		default: state = Init;
+	}
+	switch(state){ // State actions
+		case Init: break;
+		case LED1:
+			tmpB = 0;
+			tmpB = 1;
+			break;
+		case LED2:
+			tmpB = 0;
+			tmpB = 2;
+			break;
+		case LED3:
+			tmpB = 0;
+			tmpB = 4;
+			break;
+		default: break;
+	}
+	PORTC = state;
+}
+
 int main(void)
 {
+	//DDRA = 0x00; PORTA = 0xFF;
     DDRB = 0xFF; PORTB = 0x00;
 	TimerSet(1000);
 	TimerOn();
-	unsigned char tmpB = 0x00;
+	state = Init;
     while (1) 
     {
 		// User code (i.e. synchSM calls)
-		tmpB = ~tmpB; // Toggle PORTB; Temportary, bad progamming style
+		synchSM();
+		PORTB = tmpB;
+		while(!TimerFlag); // Wait 1 sec - Note: for when actually programming Microcontroller
+		//TimerISR(); // For Simulator Only
+		TimerFlag = 0;
     }
 }
 
