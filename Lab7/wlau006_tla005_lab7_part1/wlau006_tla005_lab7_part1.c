@@ -223,7 +223,6 @@ int main(void) {
 		{
 			// User code (i.e. synchSM calls)
 			synchSM();
-			// no timer ???
 		}
 	}
 }
