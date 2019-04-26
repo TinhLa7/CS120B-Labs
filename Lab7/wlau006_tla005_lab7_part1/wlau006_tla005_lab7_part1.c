@@ -66,28 +66,9 @@ void TimerSet(unsigned long M) {
 	_avr_timer_cntcurr = _avr_timer_M;
 }
 
-int main(void) {
-	
-	DDRA = 0x00; PORTA = 0xFF;// Configure port A's 8 pins as inputs, initialize to 1s
-	DDRC = 0xFF; PORTC = 0x00; // LCD data lines
-	DDRD = 0xFF; PORTD = 0x00; // LCD control lines
-		
-		// Initializes the LCD display
-		LCD_init();
-		TimerSet(1000);
-		TimerOn();
-		state = INCDEC_init;
-		LCD_WriteData(0 + '0')
-		while (1)
-		{
-			// User code (i.e. synchSM calls)
-			synchSM();
-		}
-	}
-}
 enum INCDEC_States {INCDEC_init, INCDEC_reset0, INCDEC_reset1, INC_s0, DEC_s0} INCDEC_State;
-	
-void syncSM()
+
+void synchSM()
 {	
 	unsigned char tmpA = PINA & 0x03;
 	switch(INCDEC_State) {   // Transitions
@@ -225,3 +206,27 @@ void syncSM()
 		break;
 	}
 }
+
+int main(void) {
+	
+	DDRA = 0x00; PORTA = 0xFF;// Configure port A's 8 pins as inputs, initialize to 1s
+	DDRC = 0xFF; PORTC = 0x00; // LCD data lines
+	DDRD = 0xFF; PORTD = 0x00; // LCD control lines
+		
+		// Initializes the LCD display
+		LCD_init();
+		TimerSet(1000);
+		TimerOn();
+		INCDEC_State = INCDEC_init;
+		LCD_WriteData(0 + '0')
+		while (1)
+		{
+			// User code (i.e. synchSM calls)
+			synchSM();
+			// no timer ???
+		}
+	}
+}
+
+	
+
