@@ -5,7 +5,7 @@
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
  */
-
+enum INCDEC_States {INCDEC_init, INCDEC_reset0, INCDEC_reset1, INC_s0, DEC_s0} INCDEC_State;
 #include <avr/io.h>
 #include "io.c"
 #include <avr/interrupt.h>
@@ -156,7 +156,7 @@ void syncSM()
 		break;		
 		
 		default:
-		INCDEC_State = INCDEC_init
+		INCDEC_State = INCDEC_init;
 		break;
 	} // Transitions
 
@@ -165,7 +165,9 @@ void syncSM()
 		if(tmpC < 9){
 			tmpC +=1;
 		}
+		LCD_ClearScreen();
 		LCD_WriteData(tmpC + '0');
+				TimerOn();
 		while(!TimerFlag){
 			tmpA = PINA & 0x03;
 			if(tmpA != 1){
@@ -175,13 +177,16 @@ void syncSM()
 		} // Wait 1 sec - Note: for when actually programming Microcontroller
 		//TimerISR(); // For Simulator Only
 		TimerFlag = 0;
+		TimerOff();
 		break;
 		
 		case DEC_s0:
 		if(tmpC > 0){
 			tmpC -= 1;
 		}
+		LCD_ClearScreen();
 		LCD_WriteData(tmpC + '0');
+				TimerOn();
 		while(!TimerFlag){
 			tmpA = PINA & 0x03;
 			if(tmpA != 2){
@@ -191,9 +196,11 @@ void syncSM()
 		} // Wait 1 sec - Note: for when actually programming Microcontroller
 		//TimerISR(); // For Simulator Only
 		TimerFlag = 0;
+				TimerOff();
 		break;
 		
 		case INCDEC_reset0:
+			LCD_ClearScreen();
 			LCD_WriteData(0 + '0');
 		break;
 		
@@ -214,16 +221,15 @@ int main(void) {
 		// Initializes the LCD display
 		LCD_init();
 		TimerSet(1000);
-		TimerOn();
-		state = INCDEC_init;
-		LCD_WriteData(0 + '0')
+		INCDEC_State = INCDEC_init;
+		LCD_ClearScreen();
+		LCD_WriteData(0 + '0');
 		while (1)
 		{
 			// User code (i.e. synchSM calls)
-			synchSM();
+			syncSM();
 		}
 	}
-}
-enum INCDEC_States {INCDEC_init, INCDEC_reset0, INCDEC_reset1, INC_s0, DEC_s0} INCDEC_State;
+
 	
 

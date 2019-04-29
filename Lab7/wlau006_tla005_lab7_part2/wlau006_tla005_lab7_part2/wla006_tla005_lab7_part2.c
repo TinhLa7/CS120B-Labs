@@ -71,7 +71,7 @@ unsigned char tmpB = 0x00;
 unsigned char counter = 0x00;
 unsigned char game_speeds[15] = {1,1,2,2,3,1,3,2,2,3,4,3,4,4,4};
 
-enum Game_States {Game_init, Game_begin, Game_play, Game_over, Game_s0, Game_s1, Game_s2, Game_s3, Game_victory} Game_State;
+enum Game_States {Game_init, Game_begin, Game_play, Game_over, Game_s0, Game_s1, Game_s2, Game_s3, Game_victory, Game_reset} Game_State;
 
 void syncSM()
 {
@@ -86,13 +86,25 @@ void syncSM()
 		break;
 		
 		case Game_begin:
+		counter = 0;
+		tmpC = 5;
 		Game_State = Game_play;
 		break;
 
 		case Game_play:
 		if(tmpC == 9){
+			LCD_ClearScreen();
+			LCD_DisplayString(1,"You win!!");
 			Game_State = Game_victory;
+			
 			}else if(counter == 15){
+			TimerSet(5000);
+			TimerOn();
+			LCD_ClearScreen();
+			LCD_DisplayString(1,"You lose...");
+			while(!TimerFlag);
+			TimerFlag = 0;
+			TimerOff();
 			Game_State = Game_over;
 			}else if(game_speeds[counter] == 1){
 			Game_State = Game_s0;
@@ -106,63 +118,52 @@ void syncSM()
 		break;
 		
 		case Game_s0:
-		counter++;
-		Game_State = Game_play;
+			counter++;
+			Game_State = Game_play;
 		break;
 		
 		case Game_s1:
-		counter++;
-		Game_State = Game_play;
+			counter++;
+			Game_State = Game_play;
 		break;
 		
 		case Game_s2:
-		counter++;
-		Game_State = Game_play;
+			counter++;
+			Game_State = Game_play;
 		break;
+		
 		case Game_s3:
-		counter++;
-		Game_State = Game_play;
+			counter++;
+			Game_State = Game_play;
 		break;
 		
 		case Game_victory:
-		if(tmpA != 0){
-			TimerSet(2000);
-			TimerOn();
-			Game_State = Game_init;
-			LCD_ClearScreen();
-			LCD_DisplayString(1,"Restarting game");
-			while(!TimerFlag);
-			TimerOff();
-			TimerFlag = 0;
-			}else{
 			Game_State = Game_victory;
-		}
 		break;
 		
 		case Game_over:
-		if(tmpA != 0){
+			Game_State = Game_over;
+		break;
+		
+		case Game_reset:
 			TimerSet(2000);
 			TimerOn();
+			Game_State = Game_init;
 			LCD_ClearScreen();
 			LCD_DisplayString(1,"Restarting game");
-			Game_State = Game_init;
 			while(!TimerFlag);
 			TimerOff();
 			TimerFlag = 0;
-			}else{
-			Game_State = Game_over;
-		}
+			LCD_DisplayString(1,"Press to start");
 		break;
 		
 		default:
-		Game_State = Game_init;
+			Game_State = Game_init;
 		break;
 	} // Transitions
 
 	switch(Game_State) {   // State actions
 		case Game_init:
-		LCD_ClearScreen();
-		LCD_DisplayString(1,"Press to start");
 		break;
 		
 		//===============================================================================================================================================
@@ -259,7 +260,9 @@ void syncSM()
 		}
 		TimerFlag = 0;
 		TimerOff();
-		
+		if(tmpC > 0){
+			tmpC -= 1;
+		}
 		PORTB = 0x00;
 		TimerSet(2000);
 		TimerOn();
@@ -331,7 +334,9 @@ void syncSM()
 		}
 		TimerFlag = 0;
 		TimerOff();
-		
+		if(tmpC > 0){
+			tmpC -= 1;
+		}
 		PORTB = 0x00;
 		TimerSet(2000);
 		TimerOn();
@@ -403,7 +408,9 @@ void syncSM()
 		}
 		TimerFlag = 0;
 		TimerOff();
-
+		if(tmpC > 0){
+			tmpC -= 1;
+		}
 		PORTB = 0x00;
 		TimerSet(2000);
 		TimerOn();
@@ -475,7 +482,10 @@ void syncSM()
 		}
 		TimerFlag = 0;
 		TimerOff();
-
+		
+		if(tmpC > 0){
+			tmpC -= 1;
+		}
 		PORTB = 0x00;
 		TimerSet(2000);
 		TimerOn();
@@ -491,11 +501,9 @@ void syncSM()
 		case Game_play:
 		LCD_ClearScreen();
 		LCD_DisplayString(1, "Current Score:");
+		LCD_WriteData(tmpC + '0');
 		TimerSet(2500);
 		TimerOn();
-		while(!TimerFlag);
-		TimerFlag = 0;
-		LCD_WriteData(tmpC + '0');
 		while(!TimerFlag);
 		TimerFlag = 0;
 		TimerOff();
@@ -504,44 +512,54 @@ void syncSM()
 		//===============================================================================================================================================
 		
 		case Game_victory:
-		LCD_ClearScreen();
-		LCD_DisplayString(1,"You win!!");
 		TimerSet(500);
 		TimerOn();
 		PORTB = 0x01;
 		while(!TimerFlag){
-			tmpA = PINA;
-			if(tmpA){
+			tmpA = PINA & 0x01;
+			if(tmpA != 0){
 				PORTB = 0x00;
+				Game_State = Game_reset;
+				TimerFlag = 0;
+				TimerOff();
 				return;
 			}
 		}
 		TimerFlag = 0;
+		
 		PORTB = 0x02;
 		while(!TimerFlag){
-			tmpA = PINA;
-			if(tmpA){
-				TimerOff();
+			tmpA = PINA & 0x01;
+			if(tmpA != 0){
 				PORTB = 0x00;
-				return;
-			}
-		}
-		TimerFlag = 0;
-		PORTB = 0x03;
-		while(!TimerFlag){
-			tmpA = PINA;
-			if(tmpA){
-				PORTB = 0x00;
+				Game_State = Game_reset;
+				TimerFlag = 0;
 				TimerOff();
 				return;
 			}
 		}
 		TimerFlag = 0;
+		
 		PORTB = 0x04;
 		while(!TimerFlag){
-			tmpA = PINA;
-			if(tmpA){
+			tmpA = PINA & 0x01;
+			if(tmpA != 0){
 				PORTB = 0x00;
+				Game_State = Game_reset;
+				TimerFlag = 0;
+				TimerOff();
+				return;
+			}
+		}
+		TimerFlag = 0;
+		
+		PORTB = 0x08;
+		while(!TimerFlag){
+			tmpA = PINA & 0x01;
+			if(tmpA != 0){
+				PORTB = 0x00;
+				Game_State = Game_reset;
+				TimerFlag = 0;
 				TimerOff();
 				return;
 			}
@@ -553,17 +571,63 @@ void syncSM()
 		//===============================================================================================================================================
 		
 		case Game_over:
-		TimerSet(5000);
+		TimerSet(500);
 		TimerOn();
-		LCD_ClearScreen();
-		LCD_DisplayString(1,"You lose...");
-		while(!TimerFlag);
+		PORTB = 0x01;
+		while(!TimerFlag){
+			tmpA = PINA & 0x01;
+			if(tmpA != 0){
+				Game_State = Game_reset;
+				TimerFlag = 0;
+				TimerOff();
+				return;
+			}
+		}
+			
+		TimerFlag = 0;
+		
+		PORTB = 0x02;
+		while(!TimerFlag){
+			tmpA = PINA & 0x01;
+			if(tmpA != 0){
+				Game_State = Game_reset;
+				TimerFlag = 0;
+				TimerOff();
+				return;
+			}
+		}
+		TimerFlag = 0;
+		
+		PORTB = 0x04;
+		while(!TimerFlag){
+			tmpA = PINA & 0x01;
+			if(tmpA != 0){
+				Game_State = Game_reset;
+				TimerFlag = 0;
+				TimerOff();
+				return;
+			}
+		}
+		TimerFlag = 0;
+		
+		PORTB = 0x08;
+		while(!TimerFlag){
+			tmpA = PINA & 0x01;
+			if(tmpA != 0){
+				Game_State = Game_reset;
+				TimerFlag = 0;
+				TimerOff();
+				return;
+			}
+		}
 		TimerFlag = 0;
 		TimerOff();
 		break;
 		
 		//===============================================================================================================================================
 		
+		case Game_reset:
+		break;
 		default:
 		break;
 	}
@@ -578,6 +642,7 @@ int main(void) {
 		
 		// Initializes the LCD display
 		LCD_init();
+		LCD_DisplayString(1,"Press to start");
 		Game_State = Game_init;
 		while (1)
 		{
