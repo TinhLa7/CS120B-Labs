@@ -17,7 +17,7 @@ unsigned long _avr_timer_cntcurr = 0; // Current internal count of 1ms ticks
 unsigned short x; 	unsigned char tmpB = 0;
 
 // From Exercise 2
-const unsigned short MAX;
+const unsigned short MAX = 560;
 
 void ADC_init() {
 	ADCSRA |= (1 << ADEN) | (1 << ADSC) | (1 << ADATE);
@@ -84,7 +84,7 @@ void tick_func(){
 	if(x >= MAX/2){
 		tmpB = 1;
 	}else{
-		tmpB = 1;
+		tmpB = 0;
 	}
 }
 

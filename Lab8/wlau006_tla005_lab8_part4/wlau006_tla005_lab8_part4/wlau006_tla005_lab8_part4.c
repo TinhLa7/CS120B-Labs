@@ -24,8 +24,6 @@ unsigned long _avr_timer_M = 1; // Start count from here, down to 0. Default 1 m
 unsigned long _avr_timer_cntcurr = 0; // Current internal count of 1ms ticks
 unsigned short x; 	unsigned char tmpB = 0;
 
-// From Exercise 2
-const unsigned short MAX;
 
 void ADC_init() {
 	ADCSRA |= (1 << ADEN) | (1 << ADSC) | (1 << ADATE);
@@ -88,9 +86,9 @@ void TimerSet(unsigned long M) {
 }
 
 // from part 2
-const unsigned short MAX;
+const unsigned short MAX = 560;
 // MAX divided by eight
-const unsigned short threshold;
+const unsigned short threshold = 560/8;
 
 void tick_func(){
 	x = ADC;
