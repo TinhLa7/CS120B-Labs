@@ -52,10 +52,10 @@ int TickFct_BlinkLED(int state) {
 		case BL_SMStart:
 			break;
 		case BL_LEDOff:
-			SetBit(tmpB, 3, 0);
+			tmpB = SetBit(tmpB, 3, 0);
 			break;
 		case BL_LEDON:
-			SetBit(tmpB, 3, 1);
+			tmpB = SetBit(tmpB, 3, 1);
 			break;
 		default: break;
 	}
@@ -83,19 +83,19 @@ int TickFct_ThreeLED(int state) {
 	switch(state){// Actions
 		case TL_SMStart: break;
 		case TL_Seq0:
-			SetBit(tmpB, 0, 1);
-			SetBit(tmpB, 1, 0);
-			SetBit(tmpB, 2, 0);
+			tmpB = SetBit(tmpB, 0, 1);
+			tmpB = SetBit(tmpB, 1, 0);
+			tmpB = SetBit(tmpB, 2, 0);
 		break;
 		case TL_Seq1:
-			SetBit(tmpB, 0, 0);
-			SetBit(tmpB, 1, 1);
-			SetBit(tmpB, 2, 0);
+			tmpB = SetBit(tmpB, 0, 0);
+			tmpB = SetBit(tmpB, 1, 1);
+			tmpB = SetBit(tmpB, 2, 0);
 		break;
 		case TL_Seq2:
-			SetBit(tmpB, 0, 0);
-			SetBit(tmpB, 1, 0);
-			SetBit(tmpB, 2, 1);
+			tmpB = SetBit(tmpB, 0, 0);
+			tmpB = SetBit(tmpB, 1, 0);
+			tmpB = SetBit(tmpB, 2, 1);
 		break;
 		default: break;
 	}
@@ -197,6 +197,15 @@ int main() {
 	tasks[i].TickFct = &TickFct_OUTPUT;
 	TimerSet(1000);
 	TimerOn();
-	while(1) {}
+	while(1) {
+		/*unsigned char i;
+		for (i = 0;i < TASKSSIZE;++i) {
+			if (tasks[i].elapsedTime >= tasks[i].period) {
+				tasks[i].state = tasks[i].TickFct(tasks[i].state);
+				tasks[i].elapsedTime = 0;
+			}
+			tasks[i].elapsedTime += tasks[i].period;
+		}*/
+	}
 	return 0;
 }
