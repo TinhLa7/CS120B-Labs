@@ -158,14 +158,14 @@ void TimerSet(unsigned long M) {
 }
 
 void TimerISR() {
-	/*unsigned char i;
+	unsigned char i;
 	for (i = 0;i < TASKSSIZE;++i) {
 		if (tasks[i].elapsedTime >= tasks[i].period) {
 			tasks[i].state = tasks[i].TickFct(tasks[i].state);
 			tasks[i].elapsedTime = 0;
 		}
 		tasks[i].elapsedTime += tasks[i].period;
-	}*/
+	}
 }
 
 // In our approach, the C programmer does not touch this ISR, but rather TimerISR()
@@ -205,15 +205,14 @@ int main() {
 	TimerOn();
 	while(1) {
 		// *NOTE*: Uncomment for Simulator only!
-	//	count += SYNCH_SM_TIMER;
-		unsigned char i;
+		/*unsigned char i;
 		for (i = 0;i < TASKSSIZE;++i) {
 			if (tasks[i].elapsedTime >= tasks[i].period) {
 				tasks[i].state = tasks[i].TickFct(tasks[i].state);
 				tasks[i].elapsedTime = 0;
 			}
 			tasks[i].elapsedTime += tasks[i].period;
-		}
+		}*/
 	}
 	return 0;
 }
