@@ -178,7 +178,7 @@ ISR(TIMER1_COMPA_vect) {
 	}
 }
 
-#define SYNCH_SM_TIMER 100
+#define SYNCH_SM_TIMER 300
 #define BL_SM_PERIOD 1000
 #define TL_SM_PERIOD 300
 #define OUTPUTSM_PERIOD 100
