@@ -1,7 +1,7 @@
 /*	Partner 1 Name & E-mail: Wyland Lau, wlau006@ucr.edu
  *	Partner 2 Name & E-mail: Tinh La, tla005@ucr.edu
  *	Lab Section: 025
- *	Assignment: Lab 10  Exercise 4
+ *	Assignment: Lab 10  Exercise 5
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
  */
@@ -9,7 +9,7 @@
 #include <avr/interrupt.h>
 
 // Global variables
-#define TASKSSIZE 5
+#define TASKSSIZE 3
 unsigned char tmpB;
 unsigned char tmpA;
 
@@ -32,160 +32,81 @@ typedef struct task {
 } task;
 
 task tasks[TASKSSIZE];
-
-enum BL_States { BL_SMStart, BL_LEDOff, BL_LEDON};
-int TickFct_BlinkLED(int state) { 
-	switch(state){ // Transitions
-		case BL_SMStart:
-			state = BL_LEDOff;
-			break;
-		case BL_LEDOff:
-			state = BL_LEDON;
-			break;
-		case BL_LEDON:
-			state = BL_LEDOff;
-			break;
-		default: 
-			state = BL_SMStart;
-			break;
-	}
-	switch(state){ // Actions
-		case BL_SMStart:
-			break;
-		case BL_LEDOff:
-			tmpB = SetBit(tmpB, 3, 0);
-			break;
-		case BL_LEDON:
-			tmpB = SetBit(tmpB, 3, 1);
-			break;
-		default: break;
-	}
-	return state; }
-
-enum TL_States { TL_SMStart, TL_Seq0, TL_Seq1, TL_Seq2 };
-int TickFct_ThreeLED(int state) { 
-	switch(state){// Transitions
-		case TL_SMStart:
-			state = TL_Seq0;
-			break;
-		case TL_Seq0:
-			state = TL_Seq1;
-			break;
-		case TL_Seq1:
-			state = TL_Seq2;
-			break;
-		case TL_Seq2:
-			state = TL_Seq0;
-			break;
-		default: 
-			state = TL_SMStart;
-			break;
-	}
-	switch(state){// Actions
-		case TL_SMStart: break;
-		case TL_Seq0:
-			tmpB = SetBit(tmpB, 0, 1);
-			tmpB = SetBit(tmpB, 1, 0);
-			tmpB = SetBit(tmpB, 2, 0);
-		break;
-		case TL_Seq1:
-			tmpB = SetBit(tmpB, 0, 0);
-			tmpB = SetBit(tmpB, 1, 1);
-			tmpB = SetBit(tmpB, 2, 0);
-		break;
-		case TL_Seq2:
-			tmpB = SetBit(tmpB, 0, 0);
-			tmpB = SetBit(tmpB, 1, 0);
-			tmpB = SetBit(tmpB, 2, 1);
-		break;
-		default: break;
-	}
-	return state; }
-enum SOUND_SM {SOUND_start, SOUND_ON, SOUND_OFF};
-int TickFct_Sound(int state){
+enum Button_states{button_start, read};
+enum INCDEC_States {incdec_start, stop, reset, INC, DEC};
+int TickFct_button(int state){
 	tmpA = PINA;
 	switch(state){
-		case SOUND_start:
-			state = SOUND_ON;
+		case button_start:
+		state = read;
 		break;
-		case SOUND_ON:
-			state = SOUND_OFF;
-		break;
-		case SOUND_OFF:
-			if(GetBit(tmpA, 2)){
-				state = SOUND_ON;
-			}
+		case read:
+			state = read;
 		break;
 	}
 	switch(state){
-		case SOUND_start:
+		case button_start:
 		break;
-		case SOUND_ON:
-			tmpB = SetBit(tmpB, 4, 1);
-		break;
-		case SOUND_OFF:
-			tmpB = SetBit(tmpB, 4, 0);
-		break;
-		default:
+		case read:
+		if(!GetBit(tmpA,0) && !GetBit(tmpA,1)){
+			tasks[1].state = stop;
+			tasks[1].elapsedTime = 1000;
+		}else if(GetBit(tmpA,0) && !GetBit(tmpA,1)){
+			tasks[1].state = INC;
+		}else if(!GetBit(tmpA,0) && GetBit(tmpA,1)){
+			tasks[1].state = DEC;
+		}else if(GetBit(tmpA,0) && GetBit(tmpA,1)){
+			tasks[1].state = reset;
+			tasks[1].elapsedTime = 1000;
+		}
 		break;
 	}
 	return state;
 };
-int current_freq = 1;
-enum FREQUENCY_SETTER { FREQ_START, FREQ_WAIT, FREQ_1, FREQ_2};
-int TickFct_Freq(int state){
-	tmpA = PINA;
-	switch(state){
-		case FREQ_START:
-			state = FREQ_WAIT;
+unsigned char count;
+int TickFct_INCDEC(int state)
+{
+	tmpB = PINB;
+	switch(state) {   // Actions
+		case incdec_start:
+			state = stop;
 		break;
-		case FREQ_WAIT:
-			if(GetBit(tmpA,0) && !GetBit(tmpA,1)){
-				state = FREQ_1;
-			}else if(GetBit(tmpA,1) && !GetBit(tmpA,0)){
-				state = FREQ_2;
+		case stop:
+			count = 0;
+			tasks[1].period = 1;
+		break;
+		case reset:
+			tmpB = 0;
+		break;
+		case INC:
+			if(tasks[1].period == 1){
+				tasks[1].period = 1000;
+			}
+			if(count == 3){
+				tasks[1].period = 400;
+			}
+			count++;
+			if(tmpB < 9){
+				tmpB++;
 			}
 		break;
-		case FREQ_1:
-			if(!GetBit(tmpA,0)){
-				state = FREQ_WAIT;
+		case DEC:
+			if(tasks[1].period == 1){
+				tasks[1].period = 1000;
 			}
-		break;
-		case FREQ_2:
-			if(!GetBit(tmpA,1)){
-				state = FREQ_WAIT;
+			if(count == 3){
+				tasks[1].period = 400;
 			}
-		break;
-	}
-	switch(state){
-		case FREQ_START:
-		break;
-		case FREQ_WAIT:
-			if(tasks[3].period != current_freq){
-				tasks[3].period = current_freq;
-			}
-		break;
-		case FREQ_1:
-			if(current_freq > 1){
-				current_freq--;
-			}
-			if(tasks[3].period != current_freq){
-				tasks[3].period = current_freq;
-			}
-		break;
-		case FREQ_2:
-			if(current_freq < 50){
-				current_freq++;
-			}
-			if(tasks[3].period != current_freq){
-				tasks[3].period = current_freq;
+			count++;
+			if(tmpB > 0){
+				tmpB--;
 			}
 		break;
 	}
 	return state;
-};
+}
 
-enum OUTPUT { SMStart, SM_OUTPUT};
+enum OUTPUT { SMStart, SM_OUTPUT };
 int TickFct_OUTPUT(int state){
 	switch(state){// Transitions
 		case SMStart:
@@ -196,13 +117,11 @@ int TickFct_OUTPUT(int state){
 			break;
 	}
 	switch(state){// Actions
-		case SMStart: 
-		break;
+		case SMStart: break;
 		case SM_OUTPUT:
 			PORTB = tmpB;
 		break;
-		default:
-		break;
+		default:break;
 	}
 	return state;
 };
@@ -264,45 +183,27 @@ ISR(TIMER1_COMPA_vect) {
 	}
 }
 
-#define SYNCH_SM_TIMER 1
-#define BL_SM_PERIOD 1000
-#define TL_SM_PERIOD 300
-#define FREQ_PERIOD 1;
-#define SOUND_PERIOD 1;
-#define OUTPUTSM_PERIOD 1
 int main() {
-	//long count = 0;
 	DDRA = 0x00; PORTA = 0xFF;
 	DDRB = 0xFF; PORTB = 0x00; 
 	unsigned char i = 0;
-	tasks[i].state = BL_SMStart;
-	tasks[i].period = BL_SM_PERIOD;
+	tasks[i].state = button_start;
+	tasks[i].period = 200;
 	tasks[i].elapsedTime = 0;
-	tasks[i].TickFct = &TickFct_BlinkLED;
+	tasks[i].TickFct = &TickFct_button;
 	i++;
-	tasks[i].state = TL_SMStart;
-	tasks[i].period = TL_SM_PERIOD;
+	tasks[i].state = incdec_start;
+	tasks[i].period = 1;
 	tasks[i].elapsedTime = 0;
-	tasks[i].TickFct = &TickFct_ThreeLED;
-	i++;
-	tasks[i].state = FREQ_START;
-	tasks[i].period = FREQ_PERIOD;
-	tasks[i].elapsedTime = 0;
-	tasks[i].TickFct = &TickFct_Freq;
-	i++;
-	tasks[i].state = SOUND_start;
-	tasks[i].period = SOUND_PERIOD;
-	tasks[i].elapsedTime = 0;
-	tasks[i].TickFct = &TickFct_Sound;
+	tasks[i].TickFct = &TickFct_INCDEC;
 	i++;
 	tasks[i].state = SMStart;
-	tasks[i].period = OUTPUTSM_PERIOD;
+	tasks[i].period = 200;
 	tasks[i].elapsedTime = 0;
 	tasks[i].TickFct = &TickFct_OUTPUT;
-	TimerSet(SYNCH_SM_TIMER);
+	TimerSet(1);
 	TimerOn();
 	while(1) {
-		// *NOTE*: Uncomment for Simulator only!
 		/*unsigned char i;
 		for (i = 0;i < TASKSSIZE;++i) {
 			if (tasks[i].elapsedTime >= tasks[i].period) {

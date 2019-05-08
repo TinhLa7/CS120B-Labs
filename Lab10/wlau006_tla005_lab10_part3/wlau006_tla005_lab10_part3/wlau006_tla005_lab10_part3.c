@@ -175,7 +175,7 @@ void TimerISR() {
 			tasks[i].state = tasks[i].TickFct(tasks[i].state);
 			tasks[i].elapsedTime = 0;
 		}
-		tasks[i].elapsedTime += tasks[i].period;
+		tasks[i].elapsedTime++;
 	}
 }
 
@@ -189,7 +189,7 @@ ISR(TIMER1_COMPA_vect) {
 	}
 }
 
-#define SYNCH_SM_TIMER 300
+#define SYNCH_SM_TIMER 1
 #define BL_SM_PERIOD 1000
 #define TL_SM_PERIOD 300
 #define OUTPUTSM_PERIOD 2
