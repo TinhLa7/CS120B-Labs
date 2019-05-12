@@ -131,7 +131,7 @@ int TickFct_Sound(int state){
 	}
 	return state;
 };
-int current_freq = 1;
+int current_freq;
 enum FREQUENCY_SETTER { FREQ_START, FREQ_WAIT, FREQ_1, FREQ_2};
 int TickFct_Freq(int state){
 	tmpA = PINA;
@@ -140,9 +140,9 @@ int TickFct_Freq(int state){
 			state = FREQ_WAIT;
 		break;
 		case FREQ_WAIT:
-			if(GetBit(tmpA,0) && !GetBit(tmpA,1)){
+			if(GetBit(tmpA,0) == 1 && GetBit(tmpA,1) == 0){
 				state = FREQ_1;
-			}else if(GetBit(tmpA,1) && !GetBit(tmpA,0)){
+			}else if(GetBit(tmpA,1) == 1 && GetBit(tmpA,0) == 0){
 				state = FREQ_2;
 			}
 		break;
@@ -159,6 +159,7 @@ int TickFct_Freq(int state){
 	}
 	switch(state){
 		case FREQ_START:
+		current_freq = 1;
 		break;
 		case FREQ_WAIT:
 			if(tasks[3].period != current_freq){
@@ -171,6 +172,7 @@ int TickFct_Freq(int state){
 			}
 			if(tasks[3].period != current_freq){
 				tasks[3].period = current_freq;
+				tasks[3].elapsedTime = 0;
 			}
 		break;
 		case FREQ_2:
@@ -179,6 +181,7 @@ int TickFct_Freq(int state){
 			}
 			if(tasks[3].period != current_freq){
 				tasks[3].period = current_freq;
+				tasks[3].elapsedTime = 0;
 			}
 		break;
 	}
@@ -265,9 +268,9 @@ ISR(TIMER1_COMPA_vect) {
 }
 
 #define SYNCH_SM_TIMER 1
-#define BL_SM_PERIOD 1000
-#define TL_SM_PERIOD 300
-#define FREQ_PERIOD 1;
+#define BL_SM_PERIOD 300;
+#define TL_SM_PERIOD 1000;
+#define FREQ_PERIOD 300;
 #define SOUND_PERIOD 1;
 #define OUTPUTSM_PERIOD 1
 int main() {
