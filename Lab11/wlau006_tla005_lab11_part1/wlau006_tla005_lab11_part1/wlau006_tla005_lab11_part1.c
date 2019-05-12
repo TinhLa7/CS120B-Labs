@@ -9,6 +9,54 @@
 #include <avr/io.h>
 #include <ucr/bit.h>
 
+unsigned char x = 0;
+unsigned char tmpB = 0;
+enum Keypad_SM_States {Init, Wait, Assign} state;
+	
+Keypad_SM_tick(){
+	switch(state){ //Transitions
+		case Init:
+			state = Wait;
+			break;
+		case Wait:
+			state = (x) ? Assign : Wait;
+			break;
+		case Assign:
+			state = Wait;
+			break;
+		default: state = Init;
+	}
+	switch(state){ //Actions
+		case Init: break;
+		case Wait:
+			x = GetKeypadKey();
+			break;
+		case Assign:
+			tmpB = 0;
+			switch (x) {
+				case '\0': tmpB = 0x1F; break; // All 5 LEDs on
+				case '1': tmpB = 0x01; break; // hex equivalent
+				case '2': tmpB = 0x02; break;
+				case '3': tmpB = 0x03; break;
+				case '4': tmpB = 0x04; break;
+				case '5': tmpB = 0x05; break;
+				case '6': tmpB = 0x06; break;
+				case '7': tmpB = 0x07; break;
+				case '8': tmpB = 0x08; break;
+				case '9': tmpB = 0x09; break;
+				case 'A': tmpB = 0x0A; break;
+				case 'B': tmpB = 0x0B; break;
+				case 'C': tmpB = 0x0C; break;
+				case 'D': tmpB = 0x0D; break;
+				case '*': tmpB = 0x0E; break;
+				case '0': tmpB = 0x00; break;
+				case '#': tmpB = 0x0F; break;
+				default: tmpB = 0x1B; break; // Should never occur. Middle LED off.
+			break;
+	}
+	PORTB = tmpB;
+}
+
 // Returns '\0' if no key pressed, else returns char '1', '2', ... '9', 'A', ...
 // If multiple keys pressed, returns leftmost-topmost one
 // Keypad must be connected to port C
@@ -59,23 +107,10 @@ unsigned char GetKeypadKey() {
 
 int main(void)
 {
-	unsigned char x;
 	DDRB = 0xFF; PORTB = 0x00; // PORTB set to output, outputs init 0s
 	DDRC = 0xF0; PORTC = 0x0F; // PC7..4 outputs init 0s, PC3..0 inputs init 1s
 	while(1) {
-		x = GetKeypadKey();
-		switch (x) {
-			case '\0': PORTB = 0x1F; break; // All 5 LEDs on
-			case '1': PORTB = 0x01; break; // hex equivalent
-			case '2': PORTB = 0x02; break;
 
-			// . . . ***** FINISH *****
-
-			case 'D': PORTB = 0x0D; break;
-			case '*': PORTB = 0x0E; break;
-			case '0': PORTB = 0x00; break;
-			case '#': PORTB = 0x0F; break;
-			default: PORTB = 0x1B; break; // Should never occur. Middle LED off.
 		}
 	}
 }
