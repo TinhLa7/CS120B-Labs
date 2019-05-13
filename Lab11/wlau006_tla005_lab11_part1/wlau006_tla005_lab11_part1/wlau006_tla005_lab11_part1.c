@@ -8,54 +8,21 @@
 
 #include <avr/io.h>
 #include <ucr/bit.h>
+#include <avr/interrupt.h>
+#include <ucr/timer.h>
+#include <stdio.h>
 
 unsigned char x = 0;
 unsigned char tmpB = 0;
-enum Keypad_SM_States {Init, Wait, Assign} state;
-	
-Keypad_SM_tick(){
-	switch(state){ //Transitions
-		case Init:
-			state = Wait;
-			break;
-		case Wait:
-			state = (x) ? Assign : Wait;
-			break;
-		case Assign:
-			state = Wait;
-			break;
-		default: state = Init;
-	}
-	switch(state){ //Actions
-		case Init: break;
-		case Wait:
-			x = GetKeypadKey();
-			break;
-		case Assign:
-			tmpB = 0;
-			switch (x) {
-				case '\0': tmpB = 0x1F; break; // All 5 LEDs on
-				case '1': tmpB = 0x01; break; // hex equivalent
-				case '2': tmpB = 0x02; break;
-				case '3': tmpB = 0x03; break;
-				case '4': tmpB = 0x04; break;
-				case '5': tmpB = 0x05; break;
-				case '6': tmpB = 0x06; break;
-				case '7': tmpB = 0x07; break;
-				case '8': tmpB = 0x08; break;
-				case '9': tmpB = 0x09; break;
-				case 'A': tmpB = 0x0A; break;
-				case 'B': tmpB = 0x0B; break;
-				case 'C': tmpB = 0x0C; break;
-				case 'D': tmpB = 0x0D; break;
-				case '*': tmpB = 0x0E; break;
-				case '0': tmpB = 0x00; break;
-				case '#': tmpB = 0x0F; break;
-				default: tmpB = 0x1B; break; // Should never occur. Middle LED off.
-			break;
-	}
-	PORTB = tmpB;
-}
+
+typedef struct _task {
+	/*Tasks should have members that include: state, period,
+		a measurement of elapsed time, and a function pointer.*/
+	signed char state; //Task's current state
+	unsigned long int period; //Task period
+	unsigned long int elapsedTime; //Time elapsed since last task tick
+	int (*TickFct)(int); //Task tick function
+} task;
 
 // Returns '\0' if no key pressed, else returns char '1', '2', ... '9', 'A', ...
 // If multiple keys pressed, returns leftmost-topmost one
@@ -105,14 +72,75 @@ unsigned char GetKeypadKey() {
 
 }
 
+unsigned long int findGCD(unsigned long int a, unsigned long int b)
+{
+	unsigned long int c;
+	while(1){
+		c = a%b;
+		if(c==0){return b;}
+		a = b;
+		b = c;
+	}
+	return 0;
+}
+
+enum Keypad_SM_States {Init, Wait, Assign} state;
+	
+void Keypad_SM_tick(){
+	switch(state){ //Transitions
+		case Init:
+			state = Wait;
+			break;
+		case Wait:
+			state = (x) ? Assign : Wait;
+			break;
+		case Assign:
+			state = Wait;
+			break;
+		default: state = Init;
+	}
+	switch(state){ //Actions
+		case Init: break;
+		case Wait:
+			x = GetKeypadKey();
+			break;
+		case Assign:
+			tmpB = 0;
+			switch (x) {
+				case '\0': tmpB = 0x1F; break; // All 5 LEDs on
+				case '1': tmpB = 0x01; break; // hex equivalent
+				case '2': tmpB = 0x02; break;
+				case '3': tmpB = 0x03; break;
+				case '4': tmpB = 0x04; break;
+				case '5': tmpB = 0x05; break;
+				case '6': tmpB = 0x06; break;
+				case '7': tmpB = 0x07; break;
+				case '8': tmpB = 0x08; break;
+				case '9': tmpB = 0x09; break;
+				case 'A': tmpB = 0x0A; break;
+				case 'B': tmpB = 0x0B; break;
+				case 'C': tmpB = 0x0C; break;
+				case 'D': tmpB = 0x0D; break;
+				case '*': tmpB = 0x0E; break;
+				case '0': tmpB = 0x00; break;
+				case '#': tmpB = 0x0F; break;
+				default: tmpB = 0x1B; break; // Should never occur. Middle LED off.
+			break;
+			}
+	PORTB = tmpB;
+	}
+}
+
 int main(void)
 {
+	TimerSet(500);
+	TimerOn();
 	DDRB = 0xFF; PORTB = 0x00; // PORTB set to output, outputs init 0s
 	DDRC = 0xF0; PORTC = 0x0F; // PC7..4 outputs init 0s, PC3..0 inputs init 1s
 	while(1) {
-
-		}
+		Keypad_SM_tick();
 	}
+	return 1;
 }
 
 
