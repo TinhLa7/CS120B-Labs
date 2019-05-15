@@ -215,19 +215,26 @@ void syncSM()
 int main(void) {
 	
 	DDRA = 0x00; PORTA = 0xFF;// Configure port A's 8 pins as inputs, initialize to 1s
-	DDRC = 0xFF; PORTC = 0x00; // LCD data lines
-	DDRD = 0xFF; PORTD = 0x00; // LCD control lines
+	DDRD = 0xFF; PORTD = 0x00; // LCD data lines
+	DDRB = 0xFF; PORTB = 0x00; // LCD control lines
 		
 		// Initializes the LCD display
 		LCD_init();
 		TimerSet(1000);
+		TimerOn();
 		INCDEC_State = INCDEC_init;
 		LCD_ClearScreen();
 		LCD_WriteData(0 + '0');
 		while (1)
 		{
+			LCD_DisplayString(1,"Hello World");
+			while(!TimerFlag);
+			TimerFlag = 0;
+			LCD_DisplayString(1,"Goodbye World");
+			while(!TimerFlag);
+			TimerFlag = 0;
 			// User code (i.e. synchSM calls)
-			syncSM();
+			//syncSM();
 		}
 	}
 

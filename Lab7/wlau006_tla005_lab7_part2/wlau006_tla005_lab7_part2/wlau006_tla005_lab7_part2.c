@@ -572,9 +572,9 @@ void syncSM()
 int main(void) {
 	
 	DDRA = 0x00; PORTA = 0xFF;// Configure port A's 8 pins as inputs, initialize to 
-	DDRB = 0xFF; PORTB = 0x00; //LEDs
-	DDRC = 0xFF; PORTC = 0x00; // LCD data lines
-	DDRD = 0xFF; PORTD = 0x00; // LCD control lines
+	//DDRB = 0xFF; PORTB = 0x00; //LEDs
+	DDRD = 0xFF; PORTD = 0x00; // LCD data lines
+	DDRB = 0xFF; PORTB = 0x00; // LCD control lines
 		
 		// Initializes the LCD display
 		LCD_init();
